@@ -1,13 +1,7 @@
 from file_handler import *
-from print_graphic import *
-from greedy import *
-from tabu_search import *
-from algorithms import *
-from accuracy import *
+from save_info import *
 import matplotlib.pyplot as plt
 import sqlite3
-import time
-import json
 
 conexion = sqlite3.connect("MDP_results.sqlite")
 cursor = conexion.cursor()
@@ -23,14 +17,12 @@ cursor.execute('''
     );
     ''')
 
-insert_db ='''INSERT INTO results (algorithm,problem_size,solution,accuracy,execution_time) VALUES (?, ?, ?, ?, ?)'''
+allowed_size =[2000]
 
-allowed_size =[25,50,100,250,500,1000,2000]
-
-for file in range(1,5):
+for file in range(1,2):
     for size in allowed_size:
         #lines = readFile('../ficheros/GKD_d_1_n2000_coor.txt')
-        lines = readFile(f'C:/Users/Mer/Desktop/DOCUMENTOS/proyecto/ficheros/GKD_d_{file}_n{size}_coor.txt')
+        lines = readFile(f'C:/Users/Mer/Desktop/proyecto/mdp/ficheros/GKD_d_{file}_n{size}_coor.txt')
 
         m_distance=[]
         coord_x=[]
@@ -64,42 +56,7 @@ for file in range(1,5):
 
         # Parámetro m: número de puntos a seleccionar - subconjunto
         m = 3
-    
-        start = time.time()
-        solution_greedy = maxmin_greedy(m_distance, m)
-        end = time.time()
-        execution_time=float(end-start)
-        accuracy_greedy = solution_accuracy(solution_greedy,m_distance)
-        solution_greedy = json.dumps([str(element) for element in solution_greedy]) #para guardar la solución en bd
-
-        cursor.execute(insert_db, ("Algoritmo Greedy", size, solution_greedy, accuracy_greedy, execution_time))
-        conexion.commit()
-        #print(solutionGreedy)
-        #printGrap(coord_x,coord_y,solutionGreedy)
-
-        start = time.time()
-        solution_tabu = maxmin_greedy_tabu(m_distance,m,5) 
-        end = time.time()
-        execution_time=float(end-start)
-        accuracy_tabu = solution_accuracy(solution_tabu,m_distance)
-        solution_tabu = json.dumps([str(element) for element in solution_tabu]) #para guardar la solución en bd
-
-        cursor.execute(insert_db, ("Algoritmo Tabu", size, solution_tabu,accuracy_tabu,execution_time))
-        conexion.commit()
-        #print(solutionTabu)
-        #printGrap(coord_x,coord_y,solutionTabu)
-
-        start = time.time()
-        solution_grasp= grasp(m_distance,m,5) 
-        end = time.time()
-        execution_time=float(end-start)
-        accuracy_grasp = solution_accuracy(solution_grasp,m_distance)
-        solution_grasp = json.dumps([str(element) for element in solution_grasp]) #para guardar la solución en bd
-
-        cursor.execute(insert_db, ("Algoritmo GRASP", size, solution_grasp,accuracy_grasp,execution_time))
-        conexion.commit()
-        #print(solutionGrasp)
-        #printGrap(coord_x,coord_y,solutionGrasp)
+        save_info(m_distance,m,size,coord_x,coord_y)
 
     
     
