@@ -1,15 +1,4 @@
 def solution_accuracy(solution, m_distance):
-  """
-  Calcula el accuracy de una solución para el problema de máxima diversidad con el modelo MaxMin.
-
-  Parámetros:
-    solucion (list): Lista con los índices de los elementos seleccionados en la solución.
-    matriz_distancia (numpy.ndarray): Matriz de distancias entre los elementos.
-
-  Retorno:
-    float: El accuracy de la solución.
-  """
-
   # Obtener la distancia mínima entre los elementos de la solución
   min_distance = min(m_distance[i][j] for i in solution for j in solution if i < j)
 

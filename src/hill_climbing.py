@@ -1,30 +1,34 @@
-def hill_climbing(start_solution, m_distance):
-    best_solution = start_solution
-    best_fitness = calcular_fitness(start_solution, m_distance)
+import random
 
-    while True:
-        neighborhood = generate_neighborhood(best_solution)
-        best_neighbor = max(neighborhood, key=lambda neighbor: calcular_fitness(neighbor, m_distance))
+def objective_function(node_set,distances):
+    """Función objetivo: maximizar la distancia mínima entre los nodos del conjunto."""
+    min_distance = float('inf')
+    for i in range(len(node_set)):
+        for j in range(i+1, len(node_set)):
+            distance = distances[node_set[i]][node_set[j]]
+            min_distance = min(min_distance, distance)
+    return min_distance
 
-        if calcular_fitness(best_neighbor, m_distance) > best_fitness:
-            best_solution = best_neighbor
-            best_fitness = calcular_fitness(best_neighbor, m_distance)
-        else:
-            break
+def generate_neighbor(current_solution,distances):
+    """Genera un vecino cambiando aleatoriamente un nodo del conjunto."""
+    neighbor = current_solution.copy()
+    index_to_change = random.randint(0, len(neighbor) - 1)
+    new_node = random.randint(0, len(distances) - 1)
+    neighbor[index_to_change] = new_node
+    return neighbor
 
-    return best_solution
-
-def generate_neighborhood(solucion_actual):
-    vecindario = []
-
-    for i in range(len(solucion_actual)):
-        for j in range(i + 1, len(solucion_actual)):
-            vecino = solucion_actual.copy()
-            vecino[i], vecino[j] = vecino[j], vecino[i]
-            vecindario.append(vecino)
-
-    return vecindario
-
-
-def calcular_fitness(solution, m_distance):
-    return sum(m_distance[i][j] for i in solution for j in solution)
+def hill_climbing(initial_solution, max_iterations, distances):
+    """Implementación del algoritmo Hill Climbing para maximizar la distancia mínima."""
+    # Inicialización: Usa la solución inicial proporcionada.
+    current_solution = initial_solution
+    
+    # Bucle iterativo
+    for _ in range(max_iterations):
+        # Genera un vecino cambiando un nodo del conjunto actual.
+        neighbor = generate_neighbor(current_solution,distances)
+        
+        # Evalúa la calidad del vecino y compara con el conjunto actual.
+        if objective_function(neighbor,distances) > objective_function(current_solution,distances):
+            current_solution = neighbor  # Actualiza el conjunto si el vecino es mejor.
+    
+    return current_solution

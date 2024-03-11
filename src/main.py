@@ -12,14 +12,13 @@ cursor.execute('''
         algorithm TEXT NOT NULL,
         problem_size INTEGER,
         solution TEXT,
-        accuracy REAL,
         execution_time REAL
     );
     ''')
 
-allowed_size =[2000]
+allowed_size =[1000]
 
-for file in range(1,2):
+for file in range(2,3):
     for size in allowed_size:
         #lines = readFile('../ficheros/GKD_d_1_n2000_coor.txt')
         lines = readFile(f'C:/Users/Mer/Desktop/proyecto/mdp/ficheros/GKD_d_{file}_n{size}_coor.txt')
@@ -55,7 +54,10 @@ for file in range(1,2):
                 m_distance[int(row[1])][int(row[0])]= float(row[2]) 
 
         # Parámetro m: número de puntos a seleccionar - subconjunto
-        m = 3
+        if size < 500:
+            m = round(size*8/100) 
+        else:
+            m = 10
         save_info(m_distance,m,size,coord_x,coord_y)
 
     
