@@ -1,63 +1,81 @@
 import random
 import numpy as np
 
+def select_initial_node(m_distance, candidates):
+    max_avg_distance = 0
+    best_node = None
+    # selecciona el nodo inicial que maximiza la distancia promedio a los otros nodos
+    for candidate in candidates:
+        avg_distance = sum(m_distance[candidate][i] for i in candidates) / len(candidates)
+        if avg_distance > max_avg_distance:
+            max_avg_distance = avg_distance
+            best_node = candidate
+            
+    return best_node
+
+
+def generate_initial_solution (candidates,m_distance,m):
+    solution =[]
+    solution.append(select_initial_node(m_distance,candidates))
+    for _ in range(m - 1):
+        max_distance = 0
+        current_node = None
+
+        # Encontrar el punto con la máxima distancia mínima a los seleccionados
+        for candidate in candidates:
+            min_distance = min(m_distance[candidate][i] for i in solution)
+            if min_distance > max_distance:
+                max_distance = min_distance
+                current_node = candidate
+
+        solution.append(current_node)
+        candidates.remove(current_node)
+
+    return solution
 """
-    Calcula la distancia mínima entre los nodos seleccionados en el subconjunto.
+    Calcula la distance mínima entre los nodos seleccionados en el subconjunto
 """
-def calcular_distancia_minima(matriz_distancias, subconjunto):
-    distancia_minima = float('inf')
-    for i in range(len(subconjunto)):
-        for j in range(i+1, len(subconjunto)):
-            distancia = matriz_distancias[subconjunto[i]][subconjunto[j]]
-            distancia_minima = min(distancia_minima, distancia)
-    return distancia_minima
+def calculate_min_distance(m_distance, subset):
+    min_distance = float('inf')
+    for i in range(len(subset)):
+        for j in range(i + 1, len(subset)):
+            distance = m_distance[subset[i]][subset[j]]
+            min_distance = min(min_distance, distance)
+    return min_distance
+
+def generate_neighbor(current_solution, n_nodes):
+    neighbor = current_solution[:]
+    node_to_replace = random.choice(current_solution)
+    new_node = random.choice(list(set(range(n_nodes)) - set(current_solution)))
+    neighbor[current_solution.index(node_to_replace)] = new_node
+    return neighbor
+
+def update_tabu_list(tabu_list, neighbor, tabu_size):
+    tabu_list.append(neighbor)
+    if len(tabu_list) > tabu_size:
+        tabu_list.pop(0)
 
 """
     Implementación del algoritmo de búsqueda tabú para seleccionar un subconjunto de nodos
-    que maximice la distancia mínima entre ellos.
+    que maximice la distance mínima entre ellos.
 """
-def buscar_subconjunto_optimo(matriz_distancias, n, max_iter=1000, tam_tabu=10):
-    num_nodos = len(matriz_distancias)
-    
-    # Inicialización
-    solucion_actual = random.sample(range(num_nodos), n)
-    mejor_solucion = solucion_actual[:]
-    mejor_distancia_minima = calcular_distancia_minima(matriz_distancias, mejor_solucion)
-    lista_tabu = []
+def tabu_serach(m_distance, subset_size, max_iter, tabu_size):
+    n_nodes = len(m_distance)
+    candidates = list(range(len(m_distance)))
+    current_solution = generate_initial_solution(candidates,m_distance,subset_size)
+    best_solution = current_solution[:]
+    best_min_distance = calculate_min_distance(m_distance, best_solution)
+    tabu_list = []
 
-    # Bucle principal
-    iteracion = 0
-    while iteracion < max_iter:
-        # Generar vecinos
-        vecinos = []
-        for i in range(num_nodos):
-            if i not in solucion_actual:
-                vecino = solucion_actual[:]
-                vecino[random.randint(0, n-1)] = i
-                vecinos.append(vecino)
+    for _ in range(max_iter):
+        neighbor = generate_neighbor(current_solution, n_nodes)
+        neighbor_distance = calculate_min_distance(m_distance, neighbor)
 
-        # Evaluar vecinos y seleccionar el mejor no tabú
-        mejor_vecino = None
-        mejor_distancia = 0
-        for vecino in vecinos:
-            distancia = calcular_distancia_minima(matriz_distancias, vecino)
-            if distancia > mejor_distancia and vecino not in lista_tabu:
-                mejor_vecino = vecino
-                mejor_distancia = distancia
+        if neighbor not in tabu_list:
+            current_solution = neighbor[:]
+            update_tabu_list(tabu_list, neighbor, tabu_size)
+            if neighbor_distance > best_min_distance: 
+                best_solution = current_solution[:]
+                best_min_distance = neighbor_distance
 
-        # Actualizar solución actual y lista tabú
-        if mejor_vecino is not None:
-            solucion_actual = mejor_vecino[:]
-            lista_tabu.append(mejor_vecino)
-            if len(lista_tabu) > tam_tabu:
-                lista_tabu.pop(0)
-
-        # Actualizar mejor solución encontrada
-        distancia_actual = calcular_distancia_minima(matriz_distancias, solucion_actual)
-        if distancia_actual > mejor_distancia_minima:
-            mejor_solucion = solucion_actual[:]
-            mejor_distancia_minima = distancia_actual
-
-        iteracion += 1
-
-    return mejor_solucion
+    return best_solution

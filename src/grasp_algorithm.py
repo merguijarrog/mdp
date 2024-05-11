@@ -1,48 +1,54 @@
 import random
 
-def construir_solucion(matriz_distancias, tamano_subconjunto):
-    nodos = list(range(len(matriz_distancias)))
-    solucion_parcial = []
-    for _ in range(tamano_subconjunto):
-        # Selecciona un nodo aleatorio que no esté en la solución parcial actual
-        nodo = random.choice(list(set(nodos) - set(solucion_parcial)))
-        solucion_parcial.append(nodo)
-    return solucion_parcial
+def objective_function(node_set, distances):
+    """Función objetivo: maximizar la distancia mínima entre los nodos del conjunto."""
+    min_distance = float('inf')
+    for i in range(len(node_set)):
+        for j in range(i+1, len(node_set)):
+            distance = distances[node_set[i]][node_set[j]]
+            if distance < min_distance:
+                min_distance = distance
+    return min_distance
 
-def distancia_minima(matriz_distancias, subconjunto_nodos):
-    min_distancia = float('inf')
-    for i in range(len(subconjunto_nodos)):
-        for j in range(i + 1, len(subconjunto_nodos)):
-            distancia = matriz_distancias[subconjunto_nodos[i]][subconjunto_nodos[j]]
-            min_distancia = min(min_distancia, distancia)
-    return min_distancia
+def construct_initial_solution(distances, subset_size):
+    """Construye una solución inicial aleatoria."""
+    nodes = list(range(len(distances)))
+    solution = []
+    while len(solution) < subset_size:
+        node = random.choice(nodes)
+        solution.append(node)
+        nodes.remove(node)
+    return solution
 
-def busqueda_local(matriz_distancias, solucion_parcial):
-    mejor_solucion = solucion_parcial[:]
-    mejor_distancia = distancia_minima(matriz_distancias, solucion_parcial)
+def local_search(solution, distances):
+    """Búsqueda local para mejorar la solución actual."""
+    improved = True
+    while improved:
+        improved = False
+        for i in range(len(solution)):
+            for j in range(len(distances)):
+                if j not in solution:
+                    new_solution = solution[:]
+                    new_solution[i] = j
+                    if objective_function(new_solution, distances) > objective_function(solution, distances):
+                        solution = new_solution
+                        improved = True
+                        break
+            if improved:
+                break
+    return solution
 
-    for i in range(len(solucion_parcial)):
-        for j in range(i + 1, len(solucion_parcial)):
-            # Intercambia los nodos i y j
-            nueva_solucion = solucion_parcial[:]
-            nueva_solucion[i], nueva_solucion[j] = nueva_solucion[j], nueva_solucion[i]
-            nueva_distancia = distancia_minima(matriz_distancias, nueva_solucion)
-            if nueva_distancia > mejor_distancia:
-                mejor_solucion = nueva_solucion[:]
-                mejor_distancia = nueva_distancia
-
-    return mejor_solucion
-
-def GRASP(matriz_distancias, tamano_subconjunto, iteraciones):
-    mejor_solucion = []
-    mejor_distancia = 0
-
-    for _ in range(iteraciones):
-        solucion_parcial = construir_solucion(matriz_distancias, tamano_subconjunto)
-        solucion_mejorada = busqueda_local(matriz_distancias, solucion_parcial)
-        distancia_actual = distancia_minima(matriz_distancias, solucion_mejorada)
-        if distancia_actual > mejor_distancia:
-            mejor_solucion = solucion_mejorada[:]
-            mejor_distancia = distancia_actual
-
-    return mejor_solucion
+def GRASP(distances, subset_size, max_iterations):
+    """Implementación del algoritmo GRASP."""
+    best_solution = []
+    best_distance = 0
+    
+    for _ in range(max_iterations):
+        candidate_solution = construct_initial_solution(distances, subset_size)
+        candidate_solution = local_search(candidate_solution, distances)
+        candidate_distance = objective_function(candidate_solution, distances)
+        if candidate_distance > best_distance:
+            best_solution = candidate_solution
+            best_distance = candidate_distance
+    
+    return best_solution

@@ -6,7 +6,7 @@ def maxmin_greedy(m_distance, m):
     candidates = list(range(len(m_distance)))
 
     # Elegir el punto inicial de forma aleatoria
-    #np.random.seed(8)
+    np.random.seed(8)
     start_node = np.random.choice(candidates)
     #añadimos el elemento a la solución y lo quitamos de los no seleccionados
     solution.append(start_node)

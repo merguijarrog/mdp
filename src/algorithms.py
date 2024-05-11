@@ -39,7 +39,7 @@ def maxmin_greedy_grasp(m_distance, k):
 
     return solution
 
-def grasp(m_distance, k, max_iter):
+def old_grasp(m_distance, k, max_iter):
     best_solution = []
     best_fitness = float('-inf')
 

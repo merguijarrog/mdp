@@ -2,6 +2,7 @@ from file_handler import *
 from save_info import *
 import matplotlib.pyplot as plt
 import sqlite3
+import math
 
 conexion = sqlite3.connect("MDP_results.sqlite")
 cursor = conexion.cursor()
@@ -16,9 +17,9 @@ cursor.execute('''
     );
     ''')
 
-allowed_size =[1000]
+allowed_size =[25]
 
-for file in range(2,3):
+for file in range(9,10):
     for size in allowed_size:
         #lines = readFile('../ficheros/GKD_d_1_n2000_coor.txt')
         lines = readFile(f'C:/Users/Mer/Desktop/proyecto/mdp/ficheros/GKD_d_{file}_n{size}_coor.txt')
@@ -54,10 +55,11 @@ for file in range(2,3):
                 m_distance[int(row[1])][int(row[0])]= float(row[2]) 
 
         # Parámetro m: número de puntos a seleccionar - subconjunto
-        if size < 500:
+        """ if size < 500:
             m = round(size*8/100) 
         else:
-            m = 10
+            m = 10 """
+        m=math.ceil(size*0.1)
         save_info(m_distance,m,size,coord_x,coord_y)
 
     
