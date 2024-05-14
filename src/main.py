@@ -13,11 +13,12 @@ cursor.execute('''
         algorithm TEXT NOT NULL,
         problem_size INTEGER,
         solution TEXT,
-        execution_time REAL
+        execution_time REAL,
+        filename TEXT
     );
     ''')
 
-allowed_size =[25]
+allowed_size =[250]
 
 for file in range(9,10):
     for size in allowed_size:
@@ -55,12 +56,8 @@ for file in range(9,10):
                 m_distance[int(row[1])][int(row[0])]= float(row[2]) 
 
         # Parámetro m: número de puntos a seleccionar - subconjunto
-        """ if size < 500:
-            m = round(size*8/100) 
-        else:
-            m = 10 """
         m=math.ceil(size*0.1)
-        save_info(m_distance,m,size,coord_x,coord_y)
+        save_info(m_distance,m,size,coord_x,coord_y,f'GKD_d_{file}_n{size}_coor.txt')
 
     
     
