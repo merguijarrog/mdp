@@ -1,5 +1,4 @@
 import random
-import numpy as np
 
 def select_initial_node(m_distance, candidates):
     max_avg_distance = 0
