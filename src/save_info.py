@@ -8,85 +8,71 @@ from grasp_algorithm import *
 import numpy as np
 import pandas as pd
 import os
+import math
 
-
-columns = ["Algoritmo","Instancia", "N","M", "Solucion","Solucion traducida","Tiempo","Distancia minima","Promedio solucion"]
+#columnas para el excel
+columns = ["Algoritmo","Instancia", "n","m", "Solucion","Tiempo","Distancia minima","Iteraciones"]
 
 def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
     print_solutions =[]
     solutions = []
-    
+    if size_problem < 250:
+        max_time = size_problem
+    else:
+        max_time = 100
+    num_neighbors = m
     
 #GREEDY
     start = time.time()
-    solution_greedy = maxmin_greedy(m_distance, m)
+    solution_greedy = greedy_construction(m_distance, m)
     end = time.time()
     print_solutions.append(solution_greedy)
-    execution_time=float(end-start)
-    solution_greedy_str = json.dumps([str(element) for element in solution_greedy]) #para guardar la solución en bd
-    array_solution_greedy = np.zeros(size_problem,dtype=int)
-    for solution in solution_greedy:
-        array_solution_greedy[solution]=1
-    array_solution_greedy = ''.join(map(str, array_solution_greedy.tolist()))    
+    execution_time= round(end-start, 2)
+    solution_greedy_str = json.dumps([str(element) for element in solution_greedy]) #para guardar la solución en bd  
         
-    solutions.append(['Greedy',filename,size_problem,m,array_solution_greedy,solution_greedy_str,execution_time,get_min_distance(solution_greedy,m_distance),get_average(solution_greedy,m_distance)])
-
-
+    solutions.append(["Greedy",filename,size_problem,m,solution_greedy_str,
+                      execution_time,get_min_distance(solution_greedy,m_distance),0])
+    
     print("Generada solucion para la instancia: "+filename+ " - Algoritmo Greedy")
    
 
 #TABU SEARCH
     start = time.time()
-    solution_tabu = tabu_serach(m_distance,m,100,5)
+    solution_tabu,iter = tabu_serach(m_distance,m,max_time,m)
     end = time.time()
     print_solutions.append(solution_tabu)
-    execution_time=float(end-start)
-    solution_tabu_str = json.dumps([str(element) for element in solution_tabu]) #para guardar la solución en bd
-    array_solution_tabu = np.zeros(size_problem,dtype=int)
-    for solution in solution_tabu:
-        array_solution_tabu[solution]=1
-    array_solution_tabu = ''.join(map(str, array_solution_tabu.tolist()))
+    execution_time= round(end-start, 2)
+    solution_tabu_str = json.dumps([str(element) for element in solution_tabu])
         
-    solutions.append(['TABU Search',
-                      filename,size_problem,m,array_solution_tabu,solution_tabu_str,execution_time,
-                      get_min_distance(solution_tabu,m_distance),get_average(solution_tabu,m_distance)])
+    solutions.append(["Tabu Search",filename,size_problem,m,solution_tabu_str,execution_time,
+                      get_min_distance(solution_tabu,m_distance),iter])
 
     print("Generada solucion para la instancia: "+filename+ " - Tabu Search")
 
 #GRASP
     start = time.time()
-    solution_grasp= GRASP(m_distance,m,10) 
+    solution_grasp,iter= GRASP(m_distance,m,max_time,num_neighbors) 
     end = time.time()
-    execution_time=float(end-start)
+    execution_time= round(end-start, 2)
     print_solutions.append(solution_grasp)
-    solution_grasp_str = json.dumps([str(element) for element in solution_grasp]) #para guardar la solución en bd
-    array_solution_grasp = np.zeros(size_problem,dtype=int)
-    for solution in solution_grasp:
-        array_solution_grasp[solution]=1
-    array_solution_grasp = ''.join(map(str, array_solution_grasp.tolist()))
+    solution_grasp_str = json.dumps([str(element) for element in solution_grasp])
     
-    solutions.append(['GRASP',
-                      filename,size_problem,m,array_solution_grasp,solution_grasp_str,execution_time,
-                      get_min_distance(solution_grasp,m_distance),get_average(solution_grasp,m_distance)])
+    solutions.append(["GRASP",filename,size_problem,m,solution_grasp_str,execution_time,
+                      get_min_distance(solution_grasp,m_distance),iter])
     
     print("Generada solucion para la instancia: "+filename+ " - GRASP")
 
    
-#HILL CLIMBING    
+#HILL CLIMBING  
     start = time.time()
-    solution_hill_climbing = hill_climbing(solution_greedy,m_distance,100,10)
+    solution_hill_climbing = hill_climbing(solution_greedy,m_distance,num_neighbors,100)
     end = time.time()
-    execution_time=float(end-start)
+    execution_time= round(end-start, 2)
     print_solutions.append(solution_hill_climbing)
-    solution_hill_climbing_str = json.dumps([str(element) for element in solution_grasp]) #para guardar la solución en bd
-    array_solution_hill_climbing = np.zeros(size_problem,dtype=int)
-    for solution in solution_hill_climbing:
-        array_solution_hill_climbing[solution]=1
-    array_solution_hill_climbing = ''.join(map(str, array_solution_hill_climbing.tolist()))
+    solution_hill_climbing_str = json.dumps([str(element) for element in solution_grasp])
     
-    solutions.append(['Hill Climbing',
-                      filename,size_problem,m,array_solution_hill_climbing,solution_hill_climbing_str,execution_time,
-                      get_min_distance(solution_hill_climbing,m_distance),get_average(solution_hill_climbing,m_distance)])
+    solutions.append(["Hill Climbing",filename,size_problem,m,solution_hill_climbing_str,execution_time,
+                      get_min_distance(solution_hill_climbing,m_distance),100])
     
     print("Generada solucion para la instancia: "+filename+ " - Hill climbing")
     
@@ -99,7 +85,7 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
                     existing_df = pd.read_excel('resultados.xlsx', sheet_name=name)
                     df = pd.concat([existing_df, df], ignore_index=True)
                 except ValueError:
-                    # Si la hoja no existe, simplemente creamos una nueva
+                    # Si la hoja no existe, creamos una nueva
                     pass
                 df.to_excel(writer, index=False, sheet_name=name)
     else:
@@ -112,12 +98,6 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
     #print_all_solutions(coord_x,coord_y,print_solutions)
     #printGrap(coord_x,coord_y,tabuAlgSolution)
     
-# Función para convertir el tiempo en formato HH:MM:SS a segundos
-def timer(time):
-    time_str = time.strftime('%H:%M:%S', time.gmtime(time))
-    horas, minutos, segundos = map(float, time_str.split(':'))
-    resultado = horas * 3600 + minutos * 60 + segundos
-    return resultado
 
 def get_min_distance(solution, m_distance):
     min_distance = float('inf')
@@ -128,12 +108,5 @@ def get_min_distance(solution, m_distance):
             min_distance = min(min_distance, distance)
     
     return min_distance
-    
- 
-def get_average(solution, m_distance):
-    num_elements = len(solution)
-    total_distances = sum(m_distance[solution[i]][solution[j]] for i in range(num_elements) for j in range(i+1, num_elements))
-    average_distance = total_distances / num_elements
-    return average_distance
         
            

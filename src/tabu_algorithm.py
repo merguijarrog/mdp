@@ -1,4 +1,5 @@
 import random
+import time
 
 def select_initial_node(m_distance, candidates):
     max_avg_distance = 0
@@ -58,17 +59,19 @@ def update_tabu_list(tabu_list, neighbor, tabu_size):
     Implementación del algoritmo de búsqueda tabú para seleccionar un subconjunto de nodos
     que maximice la distance mínima entre ellos.
 """
-def tabu_serach(m_distance, subset_size, max_iter, tabu_size):
-    n_nodes = len(m_distance)
-    candidates = list(range(len(m_distance)))
-    current_solution = generate_initial_solution(candidates,m_distance,subset_size)
+def tabu_serach(m_distances, m, max_time, tabu_size):
+    n_nodes = len(m_distances)
+    candidates = list(range(len(m_distances)))
+    current_solution = generate_initial_solution(candidates,m_distances,m)
     best_solution = current_solution[:]
-    best_min_distance = calculate_min_distance(m_distance, best_solution)
+    best_min_distance = calculate_min_distance(m_distances, best_solution)
     tabu_list = []
+    start_time = time.time()
+    iter=0
 
-    for _ in range(max_iter):
+    while time.time() - start_time < max_time:
         neighbor = generate_neighbor(current_solution, n_nodes)
-        neighbor_distance = calculate_min_distance(m_distance, neighbor)
+        neighbor_distance = calculate_min_distance(m_distances, neighbor)
 
         if neighbor not in tabu_list:
             current_solution = neighbor[:]
@@ -76,5 +79,7 @@ def tabu_serach(m_distance, subset_size, max_iter, tabu_size):
             if neighbor_distance > best_min_distance: 
                 best_solution = current_solution[:]
                 best_min_distance = neighbor_distance
+        
+        iter=iter+1
 
-    return best_solution
+    return best_solution,iter

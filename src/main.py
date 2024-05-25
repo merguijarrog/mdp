@@ -12,12 +12,12 @@ def readFile(file):
 if os.path.exists('resultados.xlsx'):
         os.remove('resultados.xlsx')
         
-allowed_size =[25,50,100,250,500,1000,2000]
+allowed_size =[25,50,100,250,500,1000]
     
 for size in allowed_size:
-    values=[math.ceil(size*0.1),(math.ceil(size*0.1))*2]
+    values=[math.ceil(size*0.1)] # si queremos añadir otra m: ,(math.ceil(size*0.1))*2 
     for m in values:
-        for file in range(1,10):
+        for file in range(1,11):
             relative_path = os.path.join('../instances', f'GKD_d_{file}_n{size}_coor.txt')
             lines = readFile(relative_path)
 
