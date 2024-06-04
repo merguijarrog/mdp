@@ -42,7 +42,7 @@ def find_best_neighbor(current_solution, m_distance, num_neighbors, last_worst_n
     
     return best_neighbor, worst_node
 
-def hill_climbing(initial_solution, m_distance, num_neighbors,max_iterations=20):
+def hill_climbing(initial_solution, m_distance, num_neighbors,max_iterations=30):
     """Implementación del algoritmo Hill Climbing."""
     current_solution = initial_solution
     last_worst_node = None

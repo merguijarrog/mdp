@@ -16,11 +16,12 @@ columns = ["Algoritmo","Instancia", "n","m", "Solucion","Tiempo","Distancia mini
 def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
     print_solutions =[]
     solutions = []
-    if size_problem < 250:
+    if size_problem < 500:
         max_time = size_problem
     else:
-        max_time = 100
+        max_time = 500
     num_neighbors = m
+    tabu_size=round(size_problem/2)
     
 #GREEDY
     start = time.time()
