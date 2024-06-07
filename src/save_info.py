@@ -18,8 +18,10 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
     solutions = []
     if size_problem < 500:
         max_time = size_problem
+        iter = size_problem
     else:
         max_time = 500
+        iter = 500
     num_neighbors = m
     tabu_size=round(size_problem/2)
     
@@ -39,7 +41,7 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
 
 #TABU SEARCH
     start = time.time()
-    solution_tabu,iter = tabu_serach(m_distance,m,max_time,m)
+    solution_tabu,iter = tabu_search(m_distance,m,max_time,m)
     end = time.time()
     print_solutions.append(solution_tabu)
     execution_time= round(end-start, 2)
@@ -66,11 +68,11 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
    
 #HILL CLIMBING  
     start = time.time()
-    solution_hill_climbing = hill_climbing(solution_greedy,m_distance,num_neighbors,100)
+    solution_hill_climbing = hill_climbing(solution_greedy,m_distance,num_neighbors,iter)
     end = time.time()
     execution_time= round(end-start, 2)
     print_solutions.append(solution_hill_climbing)
-    solution_hill_climbing_str = json.dumps([str(element) for element in solution_grasp])
+    solution_hill_climbing_str = json.dumps([str(element) for element in solution_hill_climbing])
     
     solutions.append(["Hill Climbing",filename,size_problem,m,solution_hill_climbing_str,execution_time,
                       get_min_distance(solution_hill_climbing,m_distance),100])
@@ -101,12 +103,25 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
     
 
 def get_min_distance(solution, m_distance):
+    """
+    Calcula la distancia mínima entre todos los pares de nodos en la solución.
+    
+    Parameters:
+    solution (list): Lista de nodos en la solución.
+    m_distance (list of list): Matriz de distancias entre los nodos.
+    
+    Returns:
+    float: La distancia mínima entre los nodos en la solución.
+    """
     min_distance = float('inf')
 
+    # Itera sobre todos los pares de nodos en la solución
     for i in range(len(solution)):
-        for j in range(i+1, len(solution)):
+        for j in range(i + 1, len(solution)):
             distance = m_distance[solution[i]][solution[j]]
-            min_distance = min(min_distance, distance)
+            # Actualiza la distancia mínima si la distancia actual es menor
+            if distance < min_distance:
+                min_distance = distance
     
     return min_distance
         
