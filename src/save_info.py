@@ -68,7 +68,7 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
    
 #HILL CLIMBING  
     start = time.time()
-    solution_hill_climbing = hill_climbing(solution_greedy,m_distance,num_neighbors,iter)
+    solution_hill_climbing = hill_climbing(solution_greedy,m_distance,num_neighbors,iter,size_problem)
     end = time.time()
     execution_time= round(end-start, 2)
     print_solutions.append(solution_hill_climbing)
@@ -101,8 +101,7 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
     #print_all_solutions(coord_x,coord_y,print_solutions)
     #printGrap(coord_x,coord_y,tabuAlgSolution)
     
-
-def get_min_distance(solution, m_distance):
+    
     """
     Calcula la distancia mínima entre todos los pares de nodos en la solución.
     
@@ -113,6 +112,7 @@ def get_min_distance(solution, m_distance):
     Returns:
     float: La distancia mínima entre los nodos en la solución.
     """
+def get_min_distance(solution, m_distance):
     min_distance = float('inf')
 
     # Itera sobre todos los pares de nodos en la solución

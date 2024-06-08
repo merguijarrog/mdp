@@ -24,7 +24,8 @@ El proyecto consta de los siguientes directorios y archivos principales:
 
 Este proyecto ha sido desarrollado en Python 3.10, por lo que se recomienda tener instalada dicha versión en el equipo que ejecutará los algoritmos del repositorio. Para la instalación de dependencias se puede utilizar el fichero "requirements.txt":
 
-```pip install -r requirements.txt
+```
+pip install -r requirements.txt
 ```
 
 También es posible realizar la instalación en un entorno virtual:
@@ -35,7 +36,8 @@ pip install -r requirements.txt
 
 Podemos listar las librerías instaladas de la siguiente manera:
 
-``` pip list
+```
+pip list
 ```
 
 # Ejecución
