@@ -5,10 +5,8 @@ from hill_climbing import *
 from print_graphic import *
 from tabu_algorithm import *
 from grasp_algorithm import *
-import numpy as np
 import pandas as pd
 import os
-import math
 
 #columnas para el excel
 columns = ["Algoritmo","Instancia", "n","m", "Solucion","Tiempo","Distancia minima","Iteraciones"]
@@ -23,11 +21,10 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
         max_time = 500
         iter = 500
     num_neighbors = m
-    tabu_size=round(size_problem/2)
     
 #GREEDY
     start = time.time()
-    solution_greedy = greedy_construction(m_distance, m)
+    solution_greedy = greedy_construction(m_distance, m, 1)
     end = time.time()
     print_solutions.append(solution_greedy)
     execution_time= round(end-start, 2)
@@ -41,7 +38,7 @@ def save_info(m_distance,m,size_problem,filename,coord_x,coord_y):
 
 #TABU SEARCH
     start = time.time()
-    solution_tabu,iter = tabu_search(m_distance,m,max_time,m)
+    solution_tabu= tabu_search(m_distance,m,max_time)
     end = time.time()
     print_solutions.append(solution_tabu)
     execution_time= round(end-start, 2)

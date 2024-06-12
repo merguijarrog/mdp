@@ -1,99 +1,114 @@
-import random
+import numpy as np
 import time
+import random
 
-def select_initial_node(m_distance, candidates):
-    max_avg_distance = 0
-    best_node = None
-    for candidate in candidates:
-        avg_distance = sum(m_distance[candidate][i] for i in candidates) / len(candidates)
-        if avg_distance > max_avg_distance:
-            max_avg_distance = avg_distance
-            best_node = candidate
-            
-    return best_node
-
-def generate_initial_solution(candidates, m_distance, m):
-    solution = []
-    solution.append(select_initial_node(m_distance, candidates))
-    for _ in range(m - 1):
-        max_distance = 0
-        current_node = None
-        for candidate in candidates:
-            min_distance = min(m_distance[candidate][i] for i in solution)
-            if min_distance > max_distance:
-                max_distance = min_distance
-                current_node = candidate
-        solution.append(current_node)
-        candidates.remove(current_node)
-    return solution
-
-def calculate_min_distance(m_distance, subset):
-    min_distance = float('inf')
-    for i in range(len(subset)):
-        for j in range(i + 1, len(subset)):
-            distance = m_distance[subset[i]][subset[j]]
-            min_distance = min(min_distance, distance)
-    return min_distance
-
-def generate_neighbor(current_solution, n_nodes):
-    neighbor = current_solution[:]
-    node_to_replace = random.choice(current_solution)
-    new_node = random.choice(list(set(range(n_nodes)) - set(current_solution)))
-    neighbor[current_solution.index(node_to_replace)] = new_node
-    return neighbor
-
-def update_tabu_list(tabu_list, neighbor, tabu_size):
-    tabu_list.append(neighbor)
-    if len(tabu_list) > tabu_size:
-        tabu_list.pop(0)
-
-def diversify_solution(m_distances, current_solution, n_nodes, diversification_factor):
-    # Diversificar seleccionando algunos nodos al azar y reemplazándolos
-    num_changes = max(1, int(len(current_solution) * diversification_factor))
-    diversified_solution = current_solution[:]
-    for _ in range(num_changes):
-        node_to_replace = random.choice(diversified_solution)
-        new_node = random.choice(list(set(range(n_nodes)) - set(diversified_solution)))
-        diversified_solution[diversified_solution.index(node_to_replace)] = new_node
-    return diversified_solution
-
-def reintensify_solution(m_distances, best_solution, m):
-    # Generar una nueva solución basada en la mejor solución encontrada
-    candidates = list(set(range(len(m_distances))) - set(best_solution))
-    return generate_initial_solution(candidates, m_distances, m)
-
-def tabu_search(m_distances, m, max_time, tabu_size, diversification_factor=0.3, reintensify_interval=10):
-    n_nodes = len(m_distances)
-    candidates = list(range(n_nodes))
-    current_solution = generate_initial_solution(candidates, m_distances, m)
-    best_solution = current_solution[:]
-    best_min_distance = calculate_min_distance(m_distances, best_solution)
-    tabu_list = []
+def tabu_search(dist_matrix, solution_size, max_time):
     start_time = time.time()
-    iteration = 0
-    last_improvement = 0
+    num_points = len(dist_matrix)
+    Z = set(range(num_points))  # Conjunto de puntos
 
-    while time.time() - start_time < max_time:
-        neighbor = generate_neighbor(current_solution, n_nodes)
-        neighbor_distance = calculate_min_distance(m_distances, neighbor)
+    # Inicialización de la lista tabú
+    tabu_list = {}
 
-        if neighbor not in tabu_list:
-            current_solution = neighbor[:]
-            update_tabu_list(tabu_list, neighbor, tabu_size)
-            if neighbor_distance > best_min_distance:
-                best_solution = current_solution[:]
-                best_min_distance = neighbor_distance
-                last_improvement = iteration
-        
-        # Diversificación cada cierto número de iteraciones sin mejora
-        if iteration - last_improvement >= reintensify_interval:
-            current_solution = diversify_solution(m_distances, current_solution, n_nodes, diversification_factor)
-            last_improvement = iteration
+    # Algorithm 1: Constructive Algorithm
+    def construct_initial_solution():
+        initial_point = random.choice(list(Z))
+        X = {initial_point}
+        while len(X) < solution_size:
+            remaining_points = Z - X
+            candidate = max(remaining_points, key=lambda x: min(dist_matrix[x][y] for y in X))
+            X.add(candidate)
+        return X
 
-        # Reintensificación periódica basada en la mejor solución
-        if iteration % reintensify_interval == 0 and iteration != 0:
-            current_solution = reintensify_solution(m_distances, best_solution, m)
+    # Algorithm 3: Calculation streamlining after adding an element x∗
+    def update_distances_after_adding(x_star, min_dist, min_dist_count):
+        for x in Z - {x_star}:
+            if dist_matrix[x][x_star] < min_dist[x]:
+                min_dist[x] = dist_matrix[x][x_star]
+                min_dist_count[x] = 1
+            elif dist_matrix[x][x_star] == min_dist[x]:
+                min_dist_count[x] += 1
 
-        iteration += 1
+    # Algorithm 4: Update calculations after dropping an element x#
+    def update_distances_after_dropping(x_drop, X, min_dist, min_dist_count):
+        for x in Z - {x_drop}:
+            if dist_matrix[x][x_drop] == min_dist[x]:
+                if min_dist_count[x] > 1:
+                    min_dist_count[x] -= 1
+                else:
+                    # Recalculate min distance and count
+                    distances = [dist_matrix[x][y] for y in X if y != x]
+                    min_dist[x] = min(distances)
+                    min_dist_count[x] = distances.count(min_dist[x])
 
-    return best_solution, iteration
+    # Function to evaluate the solution (Min distance)
+    def evaluate_solution(X):
+        if len(X) < 2:
+            return float('inf')
+        return min(dist_matrix[x][y] for x in X for y in X if x != y)
+
+    # Algorithm 2: Drop-Add Simple Tabu Search with improvements
+    def drop_add_tabu_search(initial_solution):
+        X = initial_solution.copy()
+        best_solution = X.copy()
+        best_distance = evaluate_solution(X)
+        iteration = 0
+        min_dist = {x: min(dist_matrix[x][y] for y in X if x != y) for x in Z}
+        min_dist_count = {x: sum(1 for y in X if dist_matrix[x][y] == min_dist[x]) for x in Z}
+        no_improvement_counter = 0
+        dynamic_tabu_size = int(solution_size / 2)
+
+        while time.time() - start_time < max_time:
+            if no_improvement_counter > 5:
+                # Diversificación: Cambio aleatorio de la solución
+                random_point = random.choice(list(Z - X))
+                X = {random_point}
+                while len(X) < solution_size:
+                    remaining_points = Z - X
+                    candidate = max(remaining_points, key=lambda x: min(dist_matrix[x][y] for y in X))
+                    X.add(candidate)
+                no_improvement_counter = 0
+            else:
+                # Paso de eliminación
+                drop_point = random.choice(list(X))
+                while drop_point in tabu_list:
+                    drop_point = random.choice(list(X))
+                X.remove(drop_point)
+                update_distances_after_dropping(drop_point, X, min_dist, min_dist_count)
+
+                # Paso de adición
+                remaining_points = Z - X
+                add_point = max(remaining_points, key=lambda x: min(dist_matrix[x][y] for y in X))
+                while add_point in tabu_list:
+                    remaining_points.remove(add_point)
+                    add_point = max(remaining_points, key=lambda x: min(dist_matrix[x][y] for y in X))
+                X.add(add_point)
+                update_distances_after_adding(add_point, min_dist, min_dist_count)
+
+                # Evaluar nueva solución
+                current_distance = evaluate_solution(X)
+                if current_distance > best_distance:
+                    best_solution = X.copy()
+                    best_distance = current_distance
+                    no_improvement_counter = 0  # Reiniciar contador en caso de mejora
+                else:
+                    no_improvement_counter += 1
+
+                # Actualizar lista tabú con tamaño dinámico
+                tabu_list[drop_point] = iteration
+                tabu_list[add_point] = iteration
+                iteration += 1
+
+                # Mantener tamaño de lista tabú
+                if iteration > dynamic_tabu_size:
+                    for key in list(tabu_list.keys()):
+                        if iteration - tabu_list[key] > dynamic_tabu_size:
+                            del tabu_list[key]
+
+        return best_solution
+
+    # Lógica principal del algoritmo
+    initial_solution = construct_initial_solution()
+    best_solution = drop_add_tabu_search(initial_solution)
+    
+    return list(best_solution)

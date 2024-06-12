@@ -1,9 +1,11 @@
 import random
  
 # Implementación del algoritmo greedy modelo MAXMIN
-def greedy_construction(m_distance, m):
+def greedy_construction(m_distance, m, seed=0):
     n_nodes = len(m_distance)
     solution = []
+    if seed==1:
+        random.seed(8)
     
     # Creamos una lista de índices de nodos disponibles
     candidates = list(range(n_nodes))
